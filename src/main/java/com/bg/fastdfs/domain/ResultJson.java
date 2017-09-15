@@ -93,36 +93,13 @@ public class ResultJson {
     }
 
     public String successResult(){
-//        StringBuilder result=new StringBuilder();
         JSONObject json=new JSONObject();
         json.put("IsSuccess",isSuccess);
         json.put("Data",data);
-       /* result.append("{");
-        result.append("\"IsSuccess\":"+isSuccess+", ");
-        result.append("\"Data\":"+json.getString("data"));
-        result.append("}");*/
-//        return result.toString();
         return json.toString();
     }
 
-    //用于处理eds传过来的未打印数据
-    public String backResultList_EDS(){
-        JSONObject js=new JSONObject();
-        JSONObject jData=new JSONObject();
-        js.put("IsSuccess",isSuccess);
-        jData.put("EDS_OrderSimple",data);
-        if(!map.isEmpty()){
-            Iterator iter = map.entrySet().iterator();
-            while (iter.hasNext()) {
-                  Map.Entry entry = (Map.Entry) iter.next();
-                  String key = (String)entry.getKey();
-                  Object val = entry.getValue();
-                jData.put(key,val);
-            }
-        }
-        js.put("Data",jData);
-        return js.toString();
-    }
+
 
 
 }
