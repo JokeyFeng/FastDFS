@@ -27,9 +27,7 @@ public class Swagger2 {
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("Fast-Client:java接口业务逻辑")
-//                .description("配货无纸化-配货任务管理: http://localhost:7079/swagger-ui.html")
                 .description("Fast-Client:java接口业务逻辑")
-//                .termsOfServiceUrl("http://hjjavaapi.ews.sellercube.com:7079/")
                 .termsOfServiceUrl("")
                 .contact("ketao")
                 .version("1.0")
