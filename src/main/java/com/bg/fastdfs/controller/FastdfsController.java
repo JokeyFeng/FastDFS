@@ -1,5 +1,6 @@
 package com.bg.fastdfs.controller;
 
+import com.bg.fastdfs.domain.FastException;
 import com.bg.fastdfs.domain.ResponseError;
 import com.bg.fastdfs.domain.ResultJson;
 import com.bg.fastdfs.util.FastDFSClientWrapper;
@@ -27,26 +28,16 @@ public class FastdfsController {
     @ApiOperation(value = "FastDFS-Client文件上传接口")
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     public String upload(MultipartFile file, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        // 省略业务逻辑代码。。。
-        try {
-            String imgUrl = dfsClient.uploadFile(file);
-            return new ResultJson(Boolean.TRUE,imgUrl).successResult();
-        }catch (Exception e){
-            e.printStackTrace();
-            return new ResultJson(Boolean.FALSE,e.getMessage(), ResponseError.FIlE_UPLOAD_FAUILE).errorResult();
-        }
-
+            String result = dfsClient.uploadFile(file);
+            return result;
     }
+
+
     @ApiOperation(value = "FastDFS-Client文件删除接口")
     @RequestMapping(value = "/delete",method = RequestMethod.POST)
-    public  String delete(String fileUrl){
-        try {
-            dfsClient.deleteFile(fileUrl);
-            return  new ResultJson(Boolean.TRUE,"删除成功").successResult();
-        }catch (Exception e){
-            e.printStackTrace();
-            return new ResultJson(Boolean.FALSE,e.getMessage(), ResponseError.FIlE_DELETE_FAUILE).errorResult();
-        }
+    public  String delete(String fileUrl) throws FastException {
+        String result = dfsClient.deleteFile(fileUrl);
+        return result;
     }
     @ApiOperation(value = "FastDFS-Client文件下载接口")
     @RequestMapping(value = "/download",method = RequestMethod.GET)

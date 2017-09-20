@@ -1,5 +1,8 @@
 package com.bg.fastdfs.util;
 
+import com.bg.fastdfs.domain.FastException;
+import com.bg.fastdfs.domain.ResponseError;
+import com.bg.fastdfs.domain.ResultJson;
 import com.github.tobato.fastdfs.domain.StorePath;
 import com.github.tobato.fastdfs.exception.FdfsUnsupportStorePathException;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
@@ -41,9 +44,15 @@ public class FastDFSClientWrapper {
      * @return 文件访问地址
      * @throws IOException
      */
-    public String uploadFile(MultipartFile file) throws IOException {
-        StorePath storePath = storageClient.uploadFile(file.getInputStream(),file.getSize(), FilenameUtils.getExtension(file.getOriginalFilename()),null);
-        return getResAccessUrl(storePath);
+    public String uploadFile(MultipartFile file) throws IOException, FastException {
+        try {
+            StorePath storePath = storageClient.uploadFile(file.getInputStream(),file.getSize(), FilenameUtils.getExtension(file.getOriginalFilename()),null);
+            String resAccessUrl = getResAccessUrl(storePath);
+            return  new ResultJson(Boolean.TRUE,resAccessUrl).successResult();
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new FastException(ResponseError.FIlE_UPLOAD_FAUILE,e.getMessage());
+        }
     }
 
     /**
@@ -70,15 +79,17 @@ public class FastDFSClientWrapper {
      * @param fileUrl 文件访问地址
      * @return
      */
-    public void deleteFile(String fileUrl) {
+    public String deleteFile(String fileUrl) throws FastException {
         if (StringUtils.isEmpty(fileUrl)) {
-            return;
+            throw new FastException(ResponseError.FIlE_URL_ISNULL,null);
         }
         try {
             StorePath storePath = StorePath.praseFromUrl(fileUrl);
             storageClient.deleteFile(storePath.getGroup(), storePath.getPath());
-        } catch (FdfsUnsupportStorePathException e) {
+            return  new ResultJson(Boolean.TRUE,"删除成功").successResult();
+        } catch (Exception e) {
             logger.warn(e.getMessage());
+            throw new FastException(ResponseError.FIlE_DELETE_FAUILE,e.getMessage());
         }
     }
 

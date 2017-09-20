@@ -11,7 +11,8 @@ public enum ResponseError {
 
     FIlE_UPLOAD_FAUILE("Fast_001","文件上传失败"),
     FIlE_DELETE_FAUILE("Fast_002","文件删除失败"),
-    FIlE_DOWNLOAD_FAUILE("Fast_002","文件删除失败");
+    FIlE_URL_ISNULL("Fast_003","文件路径为空"),
+    FIlE_DOWNLOAD_FAUILE("Fast_004","文件删除失败");
 
     private static Map<String, ResponseError> valueMap = new HashMap<String, ResponseError>();
 
