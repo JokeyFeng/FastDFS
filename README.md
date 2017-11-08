@@ -5,6 +5,14 @@
 - logback日志
 
 
+# 关于项目工程介绍
+- util: 代码工具类
+- common: 公共组建
+- domain: 对象PO实体
+- controller: 控制器
+- service: 业务逻辑层
+- mapper: 数据库交互层，使用mybatis orm框架
+- 
 
 ## application.properties 配置
 ```properties
