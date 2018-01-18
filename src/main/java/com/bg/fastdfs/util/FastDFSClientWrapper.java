@@ -1,14 +1,13 @@
 package com.bg.fastdfs.util;
 
+import com.bg.fastdfs.config.AppConfig;
+import com.bg.fastdfs.config.DownLoadClass;
+import com.bg.fastdfs.constant.AppConstants;
 import com.bg.fastdfs.domain.FastException;
 import com.bg.fastdfs.domain.ResponseError;
 import com.bg.fastdfs.domain.ResultJson;
 import com.github.tobato.fastdfs.domain.StorePath;
-import com.github.tobato.fastdfs.exception.FdfsUnsupportStorePathException;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
-import com.bg.fastdfs.config.AppConfig;
-import com.bg.fastdfs.config.DownLoadClass;
-import com.bg.fastdfs.constant.AppConstants;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -44,11 +43,10 @@ public class FastDFSClientWrapper {
      * @return 文件访问地址
      * @throws IOException
      */
-    public String uploadFile(MultipartFile file) throws IOException, FastException {
+    public String uploadFile(MultipartFile file) throws FastException {
         try {
             StorePath storePath = storageClient.uploadFile(file.getInputStream(),file.getSize(), FilenameUtils.getExtension(file.getOriginalFilename()),null);
-            String resAccessUrl = getResAccessUrl(storePath);
-            return  new ResultJson(Boolean.TRUE,resAccessUrl).successResult();
+            return  new ResultJson(Boolean.TRUE,storePath.getFullPath()).successResult();
         }catch (Exception e){
             e.printStackTrace();
             throw new FastException(ResponseError.FIlE_UPLOAD_FAUILE,e.getMessage());
@@ -65,7 +63,7 @@ public class FastDFSClientWrapper {
         byte[] buff = content.getBytes(Charset.forName("UTF-8"));
         ByteArrayInputStream stream = new ByteArrayInputStream(buff);
         StorePath storePath = storageClient.uploadFile(stream,buff.length, fileExtension,null);
-        return getResAccessUrl(storePath);
+        return storePath.getFullPath();
     }
 
     // 封装图片完整URL地址
@@ -113,7 +111,7 @@ public class FastDFSClientWrapper {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new ResponseEntity<byte[]>(bytes, headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(bytes, headers, HttpStatus.CREATED);
 
     }
 
