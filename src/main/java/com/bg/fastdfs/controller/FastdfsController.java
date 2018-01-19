@@ -1,6 +1,6 @@
 package com.bg.fastdfs.controller;
 
-import com.bg.fastdfs.util.FastDFSClient;
+import com.bg.fastdfs.fastdfs.FastDFSClient;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

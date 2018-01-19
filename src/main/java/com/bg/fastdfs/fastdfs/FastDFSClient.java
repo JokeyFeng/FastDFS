@@ -1,6 +1,7 @@
-package com.bg.fastdfs.util;
+package com.bg.fastdfs.fastdfs;
 
 import com.bg.fastdfs.domain.ResultJson;
+import com.bg.fastdfs.util.SplitUtil;
 import org.csource.common.MyException;
 import org.csource.common.NameValuePair;
 import org.csource.fastdfs.*;

@@ -1,4 +1,4 @@
-package com.bg.fastdfs.util;
+package com.bg.fastdfs.fastdfs;
 
 /**
  * Created by Chenjing on 2018/1/18.
