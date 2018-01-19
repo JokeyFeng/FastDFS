@@ -2,7 +2,6 @@ package com.bg.fastdfs.domain;
 
 import com.alibaba.fastjson.JSONObject;
 
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -13,27 +12,12 @@ public class ResultJson {
 
     private Object data;
 
-    private ResponseError responseError;
-
     private String message;
 
     private Map<String,Object> map;
 
     public ResultJson() {
 
-    }
-
-    public ResultJson(Boolean isSuccess, Object data, ResponseError responseError, Map<String,Object> map) {
-        this.isSuccess = isSuccess;
-        this.data = data;
-        this.responseError = responseError;
-        this.map=map;
-    }
-
-    public ResultJson(Boolean isSuccess, Object data, ResponseError responseError) {
-        this.isSuccess = isSuccess;
-        this.data = data;
-        this.responseError = responseError;
     }
 
     public ResultJson(Boolean isSuccess, Object data, String message) {
@@ -66,14 +50,6 @@ public class ResultJson {
         this.data = data;
     }
 
-    public ResponseError getResponseError() {
-        return responseError;
-    }
-
-    public void setResponseError(ResponseError responseError) {
-        this.responseError = responseError;
-    }
-
     public String getMessage() {
         return message;
     }
@@ -87,7 +63,6 @@ public class ResultJson {
         result.append("{");
         result.append("\"IsSuccess\":"+isSuccess+", ");
         result.append("\"Data\":"+data+", ");
-        result.append("\"ResponseError\":{\"Code\":\""+responseError.getCode()+"\",\"Message\":\""+responseError.getMessage()+"\"} ");
         result.append("}");
         return result.toString();
     }
