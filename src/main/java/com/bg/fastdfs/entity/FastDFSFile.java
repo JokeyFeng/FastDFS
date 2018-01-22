@@ -1,4 +1,4 @@
-package com.bg.fastdfs.fastdfs;
+package com.bg.fastdfs.entity;
 
 /**
  * Created by Chenjing on 2018/1/18.
@@ -25,12 +25,12 @@ public class FastDFSFile {
         this.author = author;
     }
 
-    public FastDFSFile(String name, byte[] content, String ext) {
+    public FastDFSFile(String name, byte[] content, String ext, String author) {
         super();
         this.name = name;
         this.content = content;
         this.ext = ext;
-
+        this.author = author;
     }
 
     public String getName() {

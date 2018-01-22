@@ -1,6 +1,6 @@
 package com.bg.fastdfs.fastdfs;
 
-import com.bg.fastdfs.domain.ResultJson;
+import com.bg.fastdfs.entity.FastDFSFile;
 import com.bg.fastdfs.util.SplitUtil;
 import org.csource.common.MyException;
 import org.csource.common.NameValuePair;
@@ -26,8 +26,6 @@ import java.util.Properties;
 public class FastDFSClient {
     private static Logger logger = LoggerFactory.getLogger(FastDFSClient.class);
     private static TrackerClient trackerClient;
-    private static TrackerServer trackerServer;
-    private static StorageServer storageServer;
 
     static {
         try {
@@ -35,25 +33,30 @@ public class FastDFSClient {
             properties.load(FastDFSClient.class.getClassLoader().getResourceAsStream("fast-dfs.properties"));
             ClientGlobal.initByProperties(properties);
             trackerClient = new TrackerClient();
-            trackerServer = trackerClient.getConnection();
-            storageServer = trackerClient.getStoreStorage(trackerServer);
         } catch (Exception e) {
             logger.error("FastDFS 客户端初始化失败，信息{}", e.toString());
         }
     }
 
+    /**
+     * 保存文件
+     *
+     * @param multipartFile 文件
+     * @return 文件路径 组名+服务器路径
+     * @throws Exception
+     */
     public static String saveFile(MultipartFile multipartFile) throws Exception {
         String[] fileAbsolutePath;
         String fileName = multipartFile.getOriginalFilename();
         String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
-        byte[] file_buff = null;
+        byte[] fileBuff = null;
         InputStream inputStream = null;
         try {
             inputStream = multipartFile.getInputStream();
             if (inputStream != null) {
                 int len1 = inputStream.available();
-                file_buff = new byte[len1];
-                inputStream.read(file_buff);
+                fileBuff = new byte[len1];
+                inputStream.read(fileBuff);
             }
         } catch (Exception e) {
             logger.error("保存文件出现了异常，信息{}", e.toString());
@@ -62,39 +65,57 @@ public class FastDFSClient {
                 inputStream.close();
             }
         }
-        FastDFSFile file = new FastDFSFile(fileName, file_buff, ext);
+        FastDFSFile file = new FastDFSFile(fileName, fileBuff, ext, "Chenjing");
         fileAbsolutePath = FastDFSClient.upload(file);
-        return new ResultJson(Boolean.TRUE, fileAbsolutePath[0] + "/" + fileAbsolutePath[1]).successResult();
+        return fileAbsolutePath[0] + "/" + fileAbsolutePath[1];
     }
 
+    /**
+     * 上传文件
+     *
+     * @param file 文件实体类
+     * @return groupName 和 serverName的数组
+     * @throws IOException io异常
+     * @throws MyException dfs框架作者定义的异常
+     * @see FastDFSFile
+     */
     private static String[] upload(FastDFSFile file) throws IOException, MyException {
-        logger.info("文件名: " + file.getName() + "，文件长度:" + file.getContent().length);
-        NameValuePair[] metaList = new NameValuePair[1];
-        metaList[0] = new NameValuePair("author", "Chenjing");
+        TrackerServer trackerServer = null;
+        StorageServer storageServer = null;
         String[] uploadResults;
-        StorageClient storageClient = new StorageClient(trackerServer, storageServer);
-        uploadResults = storageClient.upload_file(file.getContent(), file.getExt(), metaList);
-        String groupName = uploadResults[0];
-        String remoteFileName = uploadResults[1];
-
-        logger.info("上传文件成功!" + "group_name:" + groupName + ", remoteFileName:" + " " + remoteFileName);
+        try {
+            logger.info("上传文件名: " + file.getName() + "，文件长度:" + file.getContent().length);
+            NameValuePair[] metaList = new NameValuePair[1];
+            metaList[0] = new NameValuePair("author", file.getAuthor());
+            trackerServer = trackerClient.getConnection();
+            storageServer = trackerClient.getStoreStorage(trackerServer);
+            StorageClient storageClient = new StorageClient(trackerServer, storageServer);
+            uploadResults = storageClient.upload_file(file.getContent(), file.getExt(), metaList);
+            String groupName = uploadResults[0];
+            String remoteFileName = uploadResults[1];
+            logger.info("上传文件成功!" + "group_name:" + groupName + ", remoteFileName:" + " " + remoteFileName);
+        } finally {
+            if (trackerServer != null) {
+                logger.debug("关闭trackerServer连接");
+                trackerServer.close();
+            }
+            if (storageServer != null) {
+                logger.debug("关闭storageServer连接");
+                storageServer.close();
+            }
+        }
         return uploadResults;
     }
 
-    public static FileInfo getFile(String groupName, String remoteFileName) {
-        try {
-            StorageClient storageClient = new StorageClient(trackerServer, storageServer);
-            return storageClient.get_file_info(groupName, remoteFileName);
-        } catch (IOException e) {
-            logger.error("IO Exception: Get File from Fast DFS failed", e);
-        } catch (Exception e) {
-            logger.error("Non IO Exception: Get File from Fast DFS failed", e);
-        }
-        return null;
-    }
-
+    /**
+     * 下载文件
+     *
+     * @param path 保存文件返回的路径
+     * @return byte[]
+     * @throws Exception io异常 数组异常
+     */
     private static byte[] downFile(String path) throws Exception {
-        logger.info("文件路径:{}", path);
+        logger.info("下载文件路径:{}", path);
         List<String> list = SplitUtil.split("/", path);
         if (list.isEmpty()) {
             return null;
@@ -108,11 +129,36 @@ public class FastDFSClient {
             remoteFileName.append(list.get(i)).append("/");
         }
         remoteFileName.deleteCharAt(remoteFileName.length() - 1);
+        TrackerServer trackerServer = null;
+        StorageServer storageServer = null;
+        StorageClient storageClient;
+        byte[] result;
+        try {
+            trackerServer = trackerClient.getConnection();
+            storageServer = trackerClient.getStoreStorage(trackerServer);
+            storageClient = new StorageClient(trackerServer, storageServer);
+            result = storageClient.download_file(groupName, remoteFileName.toString());
+        } finally {
+            if (trackerServer != null) {
+                logger.debug("关闭trackerServer连接");
+                trackerServer.close();
+            }
+            if (storageServer != null) {
+                logger.debug("关闭storageServer连接");
+                storageServer.close();
+            }
+        }
 
-        StorageClient storageClient = new StorageClient(trackerServer, storageServer);
-        return storageClient.download_file(groupName, remoteFileName.toString());
+        return result;
     }
 
+    /**
+     * 文件下载
+     *
+     * @param fileUrl 文件路径：group path+ server path
+     * @return byte[]
+     * @throws Exception 可能抛出字符串分割异常和IO异常和数组越界异常
+     */
     public static ResponseEntity<byte[]> download(String fileUrl) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
@@ -122,24 +168,68 @@ public class FastDFSClient {
         return new ResponseEntity<>(bytes, headers, HttpStatus.CREATED);
     }
 
-    public static void deleteFile(String groupName, String remoteFileName)
+    /**
+     * 删除文件
+     *
+     * @param groupName      组名
+     * @param remoteFileName 服务器路径
+     * @throws Exception io异常
+     */
+    public static int deleteFile(String groupName, String remoteFileName)
             throws Exception {
-        StorageClient storageClient = new StorageClient(trackerServer, storageServer);
-        int i = storageClient.delete_file(groupName, remoteFileName);
-        logger.info("delete file successfully!!!" + i);
+        logger.info("删除文件的路径：" + groupName + "/" + remoteFileName);
+        TrackerServer trackerServer = null;
+        StorageServer storageServer = null;
+        StorageClient storageClient;
+        int i;
+        try {
+            trackerServer = trackerClient.getConnection();
+            storageServer = trackerClient.getStoreStorage(trackerServer);
+            storageClient = new StorageClient(trackerServer, storageServer);
+            i = storageClient.delete_file(groupName, remoteFileName);
+        } finally {
+            if (trackerServer != null) {
+                logger.debug("关闭trackerServer连接");
+                trackerServer.close();
+            }
+            if (storageServer != null) {
+                logger.debug("关闭storageServer连接");
+                storageServer.close();
+            }
+        }
+        logger.info("删除文件成功" + i);
+        return i;
     }
 
-    public static StorageServer[] getStoreStorages(String groupName)
-            throws IOException {
-        return trackerClient.getStoreStorages(trackerServer, groupName);
-    }
-
-    public static ServerInfo[] getFetchStorages(String groupName,
-                                                String remoteFileName) throws IOException {
-        return trackerClient.getFetchStorages(trackerServer, groupName, remoteFileName);
-    }
-
-    public static String getTrackerUrl() {
-        return "http://" + trackerServer.getInetSocketAddress().getHostString() + ":" + ClientGlobal.getG_tracker_http_port() + "/";
+    /**
+     * 查看文件信息
+     *
+     * @param groupName      组名
+     * @param remoteFileName 文件路径
+     * @return 文件信息 {@link FileInfo}
+     * @throws Exception io异常
+     */
+    public static FileInfo getFileInfo(String groupName, String remoteFileName) throws Exception {
+        logger.info("获取文件信息的路径：" + groupName + "/" + remoteFileName);
+        TrackerServer trackerServer = null;
+        StorageServer storageServer = null;
+        StorageClient storageClient;
+        FileInfo fileInfo;
+        try {
+            trackerServer = trackerClient.getConnection();
+            storageServer = trackerClient.getStoreStorage(trackerServer);
+            storageClient = new StorageClient(trackerServer, storageServer);
+            fileInfo = storageClient.get_file_info(groupName, remoteFileName);
+        } finally {
+            if (trackerServer != null) {
+                logger.debug("关闭trackerServer连接");
+                trackerServer.close();
+            }
+            if (storageServer != null) {
+                logger.debug("关闭storageServer连接");
+                storageServer.close();
+            }
+        }
+        return fileInfo;
     }
 }
