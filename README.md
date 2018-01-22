@@ -12,7 +12,6 @@
 - controller: 控制器
 - service: 业务逻辑层
 - mapper: 数据库交互层，使用mybatis orm框架
-- 
 
 ## application.properties 配置
 ```properties
@@ -39,6 +38,6 @@ fdfs.trackerList[0]=192.168.1.131:22122
 - /fast/upload FastDFS-Client文件上传接口
 - /fast/download FastDFS-Client文件下载接口
 - /fast/delete FastDFS-Client文件删除接口
-
+- 部署在189服务器 服务名是fastdfs1
 
 

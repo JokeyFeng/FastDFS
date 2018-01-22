@@ -11,7 +11,7 @@
 
     <appender name="rollingFile"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logback_path}/quartz.log</file>
+        <file>${logback_path}/dfs.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${logback_path}/dfs.log.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
