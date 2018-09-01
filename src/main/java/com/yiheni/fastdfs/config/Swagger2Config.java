@@ -1,4 +1,4 @@
-package com.bg.fastdfs.config;
+package com.yiheni.fastdfs.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +20,7 @@ public class Swagger2Config {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.bg.fastdfs"))
+                .apis(RequestHandlerSelectors.basePackage("com.yiheni.fastdfs"))
                 .paths(PathSelectors.any())
                 .build();
     }
@@ -33,5 +33,4 @@ public class Swagger2Config {
                 .contact(new Contact("Chenjing", null, "chenjing@banggood.com"))
                 .build();
     }
-
 }

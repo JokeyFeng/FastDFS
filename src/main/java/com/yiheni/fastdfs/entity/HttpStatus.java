@@ -1,4 +1,4 @@
-package com.bg.fastdfs.entity;
+package com.yiheni.fastdfs.entity;
 
 /**
  * Created by Chenjing on 2018/1/22.

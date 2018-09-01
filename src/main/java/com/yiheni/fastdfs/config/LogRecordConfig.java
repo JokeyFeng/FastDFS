@@ -1,5 +1,6 @@
-package com.bg.fastdfs.config;
+package com.yiheni.fastdfs.config;
 
+import com.alibaba.fastjson.JSON;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -12,6 +13,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.Instant;
 import java.util.Arrays;
 
 /**
@@ -27,26 +29,27 @@ public class LogRecordConfig {
 
     private ThreadLocal<Long> startTime = new ThreadLocal<>();
 
-    @Pointcut("execution(public * com.bg.fastdfs.rest.*.*(..))")
+    @Pointcut("execution(public * com.yiheni.fastdfs.rest.*.*(..))")
     public void log() {
     }
 
 
     @Before("log()")
     public void before(JoinPoint joinPoint) {
-        startTime.set(System.currentTimeMillis());
+        startTime.set(Instant.now().toEpochMilli());
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes.getRequest();
-        log.info("{request url : " + request.getRequestURL().toString() + ", http_method : " + request.getMethod()
-                + ", IP : " + request.getRemoteAddr() + ", class_method : "
-                + joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName() + ", args : "
-                + Arrays.toString(joinPoint.getArgs()) + "}");
+        log.info("\n请求url : " + request.getRequestURL().toString()
+                + ", \n请求方式 : " + request.getMethod()
+                + ", \nIP地址 : " + request.getRemoteAddr()
+                + ", \n类方法 : " + joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName());
+                //+ ", \n参数 : " + JSON.toJSONString(joinPoint.getArgs()));
 
     }
 
     @AfterReturning(returning = "ret", pointcut = "log()")
     public void doAfterReturning(Object ret) {
-        log.info("{result : " + ret + " spend time : " + (System.currentTimeMillis() - startTime.get()) + " milliseconds}");
+        log.info("\n响应结果 : " + JSON.toJSONString(ret) + ",\n耗时: " + (Instant.now().toEpochMilli() - startTime.get()) + " milliseconds}");
         startTime.remove();
     }
 }

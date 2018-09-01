@@ -1,4 +1,4 @@
-package com.bg.fastdfs.util;
+package com.yiheni.fastdfs.util;
 
 import com.google.common.base.Splitter;
 

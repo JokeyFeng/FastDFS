@@ -1,7 +1,7 @@
-package com.bg.fastdfs.exception;
+package com.yiheni.fastdfs.exception;
 
-import com.bg.fastdfs.entity.Result;
-import com.bg.fastdfs.util.ResultUtil;
+import com.yiheni.fastdfs.entity.Result;
+import com.yiheni.fastdfs.util.ResultUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ControllerAdvice;

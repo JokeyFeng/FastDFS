@@ -1,7 +1,7 @@
-package com.bg.fastdfs.util;
+package com.yiheni.fastdfs.util;
 
-import com.bg.fastdfs.entity.HttpStatus;
-import com.bg.fastdfs.entity.Result;
+import com.yiheni.fastdfs.entity.HttpStatus;
+import com.yiheni.fastdfs.entity.Result;
 
 /**
  * Created by Chenjing on 2018/1/22.

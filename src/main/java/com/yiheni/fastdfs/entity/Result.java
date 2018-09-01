@@ -1,4 +1,4 @@
-package com.bg.fastdfs.entity;
+package com.yiheni.fastdfs.entity;
 
 /**
  * @param <T> 限定类型

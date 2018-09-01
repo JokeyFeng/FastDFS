@@ -1,4 +1,4 @@
-package com.bg.fastdfs;
+package com.yiheni.fastdfs;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

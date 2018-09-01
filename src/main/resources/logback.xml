@@ -22,6 +22,20 @@
         </encoder>
     </appender>
 
+    <appender name="logging" class="com.github.pukkaone.gelf.logback.GelfAppender">
+        <graylogHost>192.168.229.128</graylogHost>
+        <originHost>192.168.0.118</originHost>  <!--source,来源-->
+        <levelIncluded>true</levelIncluded>
+        <locationIncluded>false</locationIncluded>
+        <loggerIncluded>true</loggerIncluded>
+        <markerIncluded>false</markerIncluded>
+        <mdcIncluded>false</mdcIncluded>
+        <threadIncluded>false</threadIncluded>
+        <facility>gelf-java</facility> <!--facility，随便写呗-->
+        <additionalField>application=tools</additionalField> <!--application，应用-->
+        <!--<additionalField>environment=prod</additionalField> environment，环境-->
+    </appender>
+
     <!-- project default level -->
     <logger name="com.bg.fastdfs" level="info"/>
 
@@ -39,5 +53,6 @@
     <root level="info">
         <appender-ref ref="console"/>
         <appender-ref ref="rollingFile"/>
+        <appender-ref ref="logging"/>
     </root>
 </configuration>

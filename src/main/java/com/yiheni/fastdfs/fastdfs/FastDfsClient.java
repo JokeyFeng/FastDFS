@@ -1,18 +1,22 @@
-package com.bg.fastdfs.fastdfs;
+package com.yiheni.fastdfs.fastdfs;
 
-import com.bg.fastdfs.entity.FastDFSFile;
-import com.bg.fastdfs.util.SplitUtil;
+import com.yiheni.fastdfs.entity.FastDFSFile;
+import com.yiheni.fastdfs.util.SplitUtil;
 import org.csource.common.MyException;
 import org.csource.common.NameValuePair;
 import org.csource.fastdfs.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -23,18 +27,40 @@ import java.util.Properties;
  *
  * @author Chenjing
  */
-public class FastDFSClient {
-    private static Logger logger = LoggerFactory.getLogger(FastDFSClient.class);
+@SuppressWarnings("all")
+@Component
+public class FastDfsClient {
+    private static Logger logger = LoggerFactory.getLogger(FastDfsClient.class);
     private static TrackerClient trackerClient;
+    private static String fastDfsProperties;
 
-    static {
+    /*  static {
+          try {
+              Properties properties = new Properties();
+              properties.load(FastDfsClient.class.getClassLoader().getResourceAsStream("fast-dfs.properties"));
+              ClientGlobal.initByProperties(properties);
+              trackerClient = new TrackerClient();
+          } catch (Exception e) {
+              logger.error("FastDfs客户端初始化失败，信息：{}", e.toString());
+          }
+      }*/
+
+    @Value("${fastDfsFile:fast-dfs.properties}")
+    public void setFastDfsProperties(String fastDfsProperties) {
+        FastDfsClient.fastDfsProperties = fastDfsProperties;
+    }
+
+    @PostConstruct
+    public void init() {
         try {
             Properties properties = new Properties();
-            properties.load(FastDFSClient.class.getClassLoader().getResourceAsStream("fast-dfs.properties"));
+            //在服务配置fast-dfs.properties
+            properties.load(FastDfsClient.class.getClassLoader().getResourceAsStream(fastDfsProperties));
             ClientGlobal.initByProperties(properties);
             trackerClient = new TrackerClient();
+            logger.info("FastDfs客户端初始化成功....");
         } catch (Exception e) {
-            logger.error("FastDFS 客户端初始化失败，信息{}", e.toString());
+            logger.error("FastDfs客户端初始化失败，信息：{}", e.toString());
         }
     }
 
@@ -65,8 +91,9 @@ public class FastDFSClient {
                 inputStream.close();
             }
         }
-        FastDFSFile file = new FastDFSFile(fileName, fileBuff, ext, "Chenjing");
-        fileAbsolutePath = FastDFSClient.upload(file);
+        FastDFSFile file = new FastDFSFile(fileName, fileBuff, ext, "yiheni");
+        //fileAbsolutePath = FastDfsClient.upload(file);
+        fileAbsolutePath = FastDfsClient.upload(file, 0);
         return fileAbsolutePath[0] + "/" + fileAbsolutePath[1];
     }
 
@@ -84,16 +111,16 @@ public class FastDFSClient {
         StorageServer storageServer = null;
         String[] uploadResults;
         try {
-            logger.info("上传文件名: " + file.getName() + "，文件长度:" + file.getContent().length);
+            logger.info("上传文件名：" + file.getName() + "，文件长度：" + file.getContent().length);
             NameValuePair[] metaList = new NameValuePair[1];
             metaList[0] = new NameValuePair("author", file.getAuthor());
             trackerServer = trackerClient.getConnection();
             storageServer = trackerClient.getStoreStorage(trackerServer);
             StorageClient storageClient = new StorageClient(trackerServer, storageServer);
             uploadResults = storageClient.upload_file(file.getContent(), file.getExt(), metaList);
-            String groupName = uploadResults[0];
+            String groupName2 = uploadResults[0];
             String remoteFileName = uploadResults[1];
-            logger.info("上传文件成功!" + "group_name:" + groupName + ", remoteFileName:" + " " + remoteFileName);
+            logger.info("上传文件成功！" + "group_name：" + groupName2 + ", remoteFileName：" + " " + remoteFileName);
         } finally {
             if (trackerServer != null) {
                 logger.debug("关闭trackerServer连接");
@@ -106,6 +133,38 @@ public class FastDFSClient {
         }
         return uploadResults;
     }
+
+    private static String[] upload(FastDFSFile file, int store_path) throws IOException, MyException {
+        TrackerServer trackerServer = null;
+        StorageServer storageServer = null;
+        String[] uploadResults;
+        try {
+            logger.info("上传文件名：" + file.getName() + "，文件长度：" + file.getContent().length);
+            NameValuePair[] metaList = new NameValuePair[1];
+            metaList[0] = new NameValuePair("author", file.getAuthor());
+            trackerServer = trackerClient.getConnection();
+            storageServer = trackerClient.getStoreStorage(trackerServer);
+            String storageIP = storageServer.getSocket().getInetAddress().getHostAddress();
+            int port = storageServer.getSocket().getPort();
+            StorageServer otherStorage = new StorageServer(storageIP, port, store_path);
+            StorageClient storageClient = new StorageClient(trackerServer, otherStorage);
+            uploadResults = storageClient.upload_file(file.getContent(), file.getExt(), metaList);
+            String groupName = uploadResults[0];
+            String remoteFileName = uploadResults[1];
+            logger.info("上传文件成功！" + "group_name：" + groupName + ", remoteFileName：" + " " + remoteFileName);
+        } finally {
+            if (trackerServer != null) {
+                logger.debug("关闭trackerServer连接");
+                trackerServer.close();
+            }
+            if (storageServer != null) {
+                logger.debug("关闭storageServer连接");
+                storageServer.close();
+            }
+        }
+        return uploadResults;
+    }
+
 
     /**
      * 下载文件
@@ -186,6 +245,7 @@ public class FastDFSClient {
             trackerServer = trackerClient.getConnection();
             storageServer = trackerClient.getStoreStorage(trackerServer);
             storageClient = new StorageClient(trackerServer, storageServer);
+            // i的值可能有0、2、22三种
             i = storageClient.delete_file(groupName, remoteFileName);
         } finally {
             if (trackerServer != null) {
